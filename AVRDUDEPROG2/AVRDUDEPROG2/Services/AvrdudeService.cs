@@ -151,6 +151,41 @@ public sealed class AvrdudeService
         }
     }
 
+    public async Task<IReadOnlyList<byte>> ReadCalibrationBytesAsync(
+        DeviceDefinition device,
+        ProgrammerDefinition programmer,
+        string port,
+        CancellationToken cancellationToken = default)
+    {
+        var temporaryDirectory = Path.Combine(Path.GetTempPath(), "AVRDUDEPROG2", Guid.NewGuid().ToString("N"));
+        var temporaryFile = Path.Combine(temporaryDirectory, "calibration.bin");
+        Directory.CreateDirectory(temporaryDirectory);
+        try
+        {
+            var result = await RunAsync(device, programmer, port,
+                ["-U", $"calibration:r:{temporaryFile}:r"], cancellationToken);
+            if (!result.Success)
+                throw new InvalidOperationException("Калибровочную ячейку прочитать не удалось. Эта память поддерживается не всеми МК.");
+
+            var data = await File.ReadAllBytesAsync(temporaryFile, cancellationToken);
+            if (data.Length < 1)
+                throw new InvalidDataException("AVRDUDE вернул пустое значение калибровочной ячейки.");
+
+            return data;
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(temporaryDirectory, true);
+            }
+            catch
+            {
+                // Temporary diagnostic files can safely be removed by the OS later.
+            }
+        }
+    }
+
     private static string QuoteForDisplay(string value) =>
         value.Any(char.IsWhiteSpace) ? $"\"{value}\"" : value;
 }

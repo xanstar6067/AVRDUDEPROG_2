@@ -343,17 +343,16 @@ public partial class MainWindow : Window
 
     private async void ReadCalibration_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog { Filter = "Двоичный файл (*.bin)|*.bin|Все файлы (*.*)|*.*", FileName = "calibration.bin" };
-        if (dialog.ShowDialog(this) != true)
-            return;
-
         await ExecuteUiOperationAsync("Чтение калибровочной ячейки…", async () =>
         {
-            var result = await _avrdude.RunAsync(SelectedDevice, SelectedProgrammer, SelectedPort,
-                ["-U", $"calibration:r:{dialog.FileName}:r"]);
-            if (!result.Success)
-                throw new InvalidOperationException("Калибровочную ячейку прочитать не удалось. Эта память поддерживается не всеми МК.");
-            StatusText.Text = $"Калибровочная ячейка сохранена: {dialog.FileName}";
+            var values = await _avrdude.ReadCalibrationBytesAsync(SelectedDevice, SelectedProgrammer, SelectedPort);
+            var message = values.Count == 1
+                ? $"Код калибровочной ячейки: 0x{values[0]:X2} ({values[0]})"
+                : "Коды калибровочных ячеек:\n" + string.Join("\n",
+                    values.Select((value, index) => $"{index + 1}: 0x{value:X2} ({value})"));
+            AppendLog(message);
+            StatusText.Text = $"Калибровочные коды прочитаны: {string.Join(", ", values.Select(value => $"0x{value:X2}"))}";
+            MessageBox.Show(this, message, "Калибровочная ячейка", MessageBoxButton.OK, MessageBoxImage.Information);
         });
     }
 
