@@ -11,9 +11,11 @@
     <Description>Безопасная современная оболочка для AVRDUDE</Description>
     <Version>1.0.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AVRDUDEPROG2.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\AVRDUDEPROG2.png" />
     <Content Include="..\..\references\avrdudeprog33\avrdude.exe" Link="Tools\avrdude.exe" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\references\avrdudeprog33\avrdude.conf" Link="Tools\avrdude.conf" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\references\avrdudeprog33\atmel.ini" Link="Data\atmel.ini" CopyToOutputDirectory="PreserveNewest" />

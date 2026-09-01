@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="AVRDUDE PRO" Width="1060" Height="700" MinWidth="820" MinHeight="590"
+        Title="AVRDUDE PRO" Icon="Assets/AVRDUDEPROG2.ico" Width="1060" Height="700" MinWidth="820" MinHeight="590"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>
@@ -24,9 +24,7 @@
                     <ColumnDefinition Width="125" />
                 </Grid.ColumnDefinitions>
 
-                <Border Width="34" Height="34" CornerRadius="2" Background="{StaticResource AccentDarkBrush}" VerticalAlignment="Center">
-                    <TextBlock Text="AVR" Foreground="White" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
+                <Image Width="34" Height="34" Source="Assets/AVRDUDEPROG2.png" Stretch="Uniform" VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Margin="9,0,14,0" VerticalAlignment="Center">
                     <TextBlock Text="AVRDUDE PRO" FontSize="17" FontWeight="SemiBold" />
                     <TextBlock Text="Безопасная прошивка AVR" Style="{StaticResource MutedText}" FontSize="11" />
