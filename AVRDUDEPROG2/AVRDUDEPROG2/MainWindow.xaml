@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="AVRDUDE PRO" Icon="Assets/AVRDUDEPROG2.ico" Width="1060" Height="700" MinWidth="820" MinHeight="590"
+        Title="AVRDUDE PRO" Icon="Assets/AVRDUDEPROG2.png" Width="1060" Height="700" MinWidth="820" MinHeight="590"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
         <Grid.RowDefinitions>

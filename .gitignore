@@ -72,6 +72,7 @@ publish/
 # Publish Web Output
 *.Publish.xml
 *.pubxml
+!AVRDUDEPROG2/AVRDUDEPROG2/Properties/PublishProfiles/FolderProfile.pubxml
 *.azurePubxml
 
 # NuGet Packages Directory

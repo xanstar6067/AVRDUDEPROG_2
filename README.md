@@ -36,6 +36,16 @@ dotnet build .\AVRDUDEPROG2\AVRDUDEPROG2.slnx
 dotnet run --project .\AVRDUDEPROG2\AVRDUDEPROG2.Tests\AVRDUDEPROG2.Tests.csproj --no-build -- .
 ```
 
+## Публикация
+
+Основной профиль создаёт автономную 64-битную folder-публикацию. Установка .NET на целевом компьютере не требуется:
+
+```powershell
+dotnet publish .\AVRDUDEPROG2\AVRDUDEPROG2\AVRDUDEPROG2.csproj -p:PublishProfile=FolderProfile
+```
+
+Запускаемый файл будет находиться в `AVRDUDEPROG2\AVRDUDEPROG2\bin\Release\net10.0-windows\win-x64\publish\AVRDUDEPROG2.exe`. Распространять нужно всю папку `publish`, а не только EXE. Single-file для этого WPF-приложения отключён из-за сбоев запуска в актуальных сборках .NET 10.
+
 Настройки сохраняются в `%LOCALAPPDATA%\AVRDUDEPROG2\settings.json`. Файлы AVRDUDE, конфигурация, USBasp-драйвер и лицензия автоматически копируются в выходную папку.
 
 Аппаратные операции требуют реального программатора и целевого AVR. Самотесты не выполняют запись на устройство.
