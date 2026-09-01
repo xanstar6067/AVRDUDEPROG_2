@@ -280,13 +280,6 @@ public partial class MainWindow : Window
                 return;
         }
 
-        IReadOnlyDictionary<string, byte>? beforeFuses = null;
-        if (operation == 'w')
-        {
-            AppendLog("Защита: читаю fuse-байты перед записью (без lock)…");
-            beforeFuses = await _avrdude.ReadFuseBytesAsync(SelectedDevice, SelectedProgrammer, SelectedPort, includeLock: false);
-        }
-
         var result = await _avrdude.RunAsync(
             SelectedDevice,
             SelectedProgrammer,
@@ -294,27 +287,6 @@ public partial class MainWindow : Window
             ["-U", $"{memory}:{operation}:{path}:{format}"]);
         if (!result.Success)
             throw new InvalidOperationException($"Операция {memory}:{operation} завершилась ошибкой. См. журнал AVRDUDE.");
-
-        if (beforeFuses is not null)
-        {
-            AppendLog("Защита: повторно читаю fuse-байты и сравниваю…");
-            var afterFuses = await _avrdude.ReadFuseBytesAsync(SelectedDevice, SelectedProgrammer, SelectedPort, includeLock: false);
-            var changed = beforeFuses
-                .Where(pair => !afterFuses.TryGetValue(pair.Key, out var after) || after != pair.Value)
-                .Select(pair => $"{pair.Key}: 0x{pair.Value:X2} → {(afterFuses.TryGetValue(pair.Key, out var value) ? $"0x{value:X2}" : "?")}")
-                .ToArray();
-            if (changed.Length > 0)
-            {
-                var message = "КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ: fuse-байты изменились после обычной операции:\n" + string.Join("\n", changed) +
-                              "\nПриложение ничего не восстанавливало автоматически.";
-                AppendLog(message);
-                MessageBox.Show(this, message, "Изменение fuse обнаружено", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            else
-            {
-                AppendLog("Защита: fuse-байты не изменились.");
-            }
-        }
 
         StatusText.Text = operation switch
         {

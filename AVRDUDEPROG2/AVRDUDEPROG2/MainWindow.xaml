@@ -141,7 +141,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Безопасность" Style="{StaticResource SectionTitle}" />
                                         <TextBlock Margin="0,5,0,0" TextWrapping="Wrap" Style="{StaticResource MutedText}" FontSize="12"
-                                                   Text="Flash и EEPROM не содержат fuse-команд. До и после записи fuse только читаются и сравниваются." />
+                                                   Text="Flash и EEPROM не содержат fuse-команд: команда записи не может задеть fuse. Safemode AVRDUDE отключён, чтобы он их не &quot;восстанавливал&quot; сам." />
                                         <Border Margin="0,7,0,0" Background="#FFF4CE" BorderBrush="#E2C24C" BorderThickness="1" CornerRadius="2" Padding="8">
                                             <TextBlock Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" FontSize="12"
                                                        Text="Flash использует chip erase: fuse сохраняются, lock-биты сбрасываются; EEPROM стирается при EESAVE = 1." />
@@ -321,7 +321,7 @@
                                            Text="Intel HEX (.hex, .ihex, .ihx, .a90, .eep), Motorola S-Record (.srec, .s19, .s28, .s37, .mot), AVR ELF (.elf, .axf), raw binary (.bin, .raw, .rom) и текстовые списки байтов. Формат проверяется по содержимому, а не только по расширению." />
                                 <TextBlock Text="Принципы работы с fuse" Style="{StaticResource SectionTitle}" Margin="0,12,0,5" />
                                 <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedText}"
-                                           Text="Обычные операции не записывают fuse. Старый safemode AVRDUDE отключён, чтобы исключить его скрытое автоматическое восстановление; вместо него приложение явно читает и сравнивает значения. Любая запись fuse проходит через предварительное повторное чтение, просмотр изменений, подтверждение и контрольное чтение." />
+                                           Text="Обычные операции (Flash, EEPROM) не содержат fuse-команд и не могут их задеть. Старый safemode AVRDUDE отключён, чтобы исключить его скрытое автоматическое восстановление fuse. Любая запись fuse — отдельное, явное действие: она проходит через предварительное повторное чтение, просмотр изменений, подтверждение и контрольное чтение." />
                             </StackPanel>
                         </Border>
                     </ScrollViewer>
