@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AVRDUDEPROG2/AVRDUDEPROG2.csproj" />
+  <Project Path="AVRDUDEPROG2.Tests/AVRDUDEPROG2.Tests.csproj" />
 </Solution>

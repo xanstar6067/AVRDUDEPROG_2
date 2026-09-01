@@ -1,12 +1,366 @@
-﻿<Window x:Class="AVRDUDEPROG2.MainWindow"
+<Window x:Class="AVRDUDEPROG2.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AVRDUDEPROG2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="AVRDUDE PRO" Width="1060" Height="700" MinWidth="820" MinHeight="590"
+        WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1" Padding="12,9">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="230" />
+                    <ColumnDefinition Width="165" />
+                    <ColumnDefinition Width="125" />
+                </Grid.ColumnDefinitions>
+
+                <Border Width="34" Height="34" CornerRadius="2" Background="{StaticResource AccentDarkBrush}" VerticalAlignment="Center">
+                    <TextBlock Text="AVR" Foreground="White" FontWeight="Bold" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="9,0,14,0" VerticalAlignment="Center">
+                    <TextBlock Text="AVRDUDE PRO" FontSize="17" FontWeight="SemiBold" />
+                    <TextBlock Text="Безопасная прошивка AVR" Style="{StaticResource MutedText}" FontSize="11" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                    <TextBlock Text="Микроконтроллер" Style="{StaticResource MutedText}" FontSize="11" Margin="1,0,0,2" />
+                    <ComboBox x:Name="DeviceCombo" IsEditable="True" IsTextSearchEnabled="True"
+                              StaysOpenOnEdit="True" SelectionChanged="DeviceCombo_SelectionChanged" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Margin="0,0,8,0">
+                    <TextBlock Text="Программатор" Style="{StaticResource MutedText}" FontSize="11" Margin="1,0,0,2" />
+                    <ComboBox x:Name="ProgrammerCombo" SelectionChanged="ProgrammerCombo_SelectionChanged" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="Порт" Style="{StaticResource MutedText}" FontSize="11" Margin="1,0,0,2" />
+                    <ComboBox x:Name="PortCombo" IsEditable="True" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="12,7,12,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="105" MinHeight="70" />
+            </Grid.RowDefinitions>
+
+            <TabControl x:Name="ContentTabs" Grid.Row="0">
+                <TabItem Header="Прошивка">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,7,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="286" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <DockPanel LastChildFill="True">
+                                            <Border DockPanel.Dock="Left" Width="30" Height="30" Background="#E5F1FB" CornerRadius="2" Margin="0,0,8,0">
+                                                <TextBlock Text="F" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel>
+                                                <TextBlock Text="Flash" Style="{StaticResource SectionTitle}" />
+                                                <TextBlock Text="Программа устройства · HEX, A90, ELF, S-Record, BIN" Style="{StaticResource MutedText}" FontSize="12" />
+                                            </StackPanel>
+                                        </DockPanel>
+
+                                        <Border Margin="0,8,0,8" Padding="8" CornerRadius="2" BorderThickness="1"
+                                                BorderBrush="{StaticResource BorderBrush}" Background="White"
+                                                AllowDrop="True" Tag="flash" DragEnter="FirmwareDrop_DragEnter" Drop="FirmwareDrop_Drop">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBox x:Name="FlashPathBox" BorderThickness="0" Padding="0" Background="Transparent"
+                                                             TextChanged="FirmwarePathBox_TextChanged" Tag="flash" />
+                                                    <TextBlock x:Name="FlashFormatText" Text="Перетащите файл сюда или выберите его" Style="{StaticResource MutedText}" FontSize="11" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="Выбрать…" Click="BrowseFirmware_Click" Tag="flash" Margin="8,0,0,0" />
+                                            </Grid>
+                                        </Border>
+                                        <WrapPanel>
+                                            <Button Content="Записать и проверить" Style="{StaticResource PrimaryButton}" Click="MemoryAction_Click" Tag="flash:w" Margin="0,0,6,0" />
+                                            <Button Content="Проверить" Click="MemoryAction_Click" Tag="flash:v" Margin="0,0,6,0" />
+                                            <Button Content="Прочитать…" Click="MemoryAction_Click" Tag="flash:r" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <DockPanel LastChildFill="True">
+                                            <Border DockPanel.Dock="Left" Width="30" Height="30" Background="#E5F1FB" CornerRadius="2" Margin="0,0,8,0">
+                                                <TextBlock Text="E" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel>
+                                                <TextBlock Text="EEPROM" Style="{StaticResource SectionTitle}" />
+                                                <TextBlock Text="Энергонезависимые данные устройства" Style="{StaticResource MutedText}" FontSize="12" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                        <Border Margin="0,8,0,8" Padding="8" CornerRadius="2" BorderThickness="1"
+                                                BorderBrush="{StaticResource BorderBrush}" Background="White"
+                                                AllowDrop="True" Tag="eeprom" DragEnter="FirmwareDrop_DragEnter" Drop="FirmwareDrop_Drop">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBox x:Name="EepromPathBox" BorderThickness="0" Padding="0" Background="Transparent"
+                                                             TextChanged="FirmwarePathBox_TextChanged" Tag="eeprom" />
+                                                    <TextBlock x:Name="EepromFormatText" Text="Перетащите файл сюда или выберите его" Style="{StaticResource MutedText}" FontSize="11" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="Выбрать…" Click="BrowseFirmware_Click" Tag="eeprom" Margin="8,0,0,0" />
+                                            </Grid>
+                                        </Border>
+                                        <WrapPanel>
+                                            <Button Content="Записать и проверить" Style="{StaticResource PrimaryButton}" Click="MemoryAction_Click" Tag="eeprom:w" Margin="0,0,6,0" />
+                                            <Button Content="Проверить" Click="MemoryAction_Click" Tag="eeprom:v" Margin="0,0,6,0" />
+                                            <Button Content="Прочитать…" Click="MemoryAction_Click" Tag="eeprom:r" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Безопасность" Style="{StaticResource SectionTitle}" />
+                                        <TextBlock Margin="0,5,0,0" TextWrapping="Wrap" Style="{StaticResource MutedText}" FontSize="12"
+                                                   Text="Flash и EEPROM не содержат fuse-команд. До и после записи fuse только читаются и сравниваются." />
+                                        <Border Margin="0,7,0,0" Background="#FFF4CE" BorderBrush="#E2C24C" BorderThickness="1" CornerRadius="2" Padding="8">
+                                            <TextBlock Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" FontSize="12"
+                                                       Text="Flash использует chip erase: fuse сохраняются, lock-биты сбрасываются; EEPROM стирается при EESAVE = 1." />
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Сервис" Style="{StaticResource SectionTitle}" />
+                                        <Button Content="Стереть кристалл…" Style="{StaticResource DangerButton}" Click="EraseChip_Click" Margin="0,7,0,5" HorizontalContentAlignment="Left" />
+                                        <Button Content="Прочитать калибровочную ячейку…" Click="ReadCalibration_Click" HorizontalContentAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Подключение" Style="{StaticResource SectionTitle}" />
+                                        <Button Content="Открыть папку драйвера USBasp" Click="OpenDrivers_Click" Margin="0,7,0,0" HorizontalContentAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Fuse-биты">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,7,0,4">
+                        <StackPanel>
+                            <Border Background="#FDE7E9" BorderBrush="#D13438" BorderThickness="1" CornerRadius="2" Padding="9" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="!" Foreground="{StaticResource DangerBrush}" FontSize="18" FontWeight="Bold" Margin="2,0,9,0" VerticalAlignment="Top" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Fuse-биты активны по нулю" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" />
+                                        <TextBlock TextWrapping="Wrap" Margin="0,2,0,0" Style="{StaticResource MutedText}" FontSize="12"
+                                                   Text="Флажок показывает прямое (raw) значение из datasheet: ✓ = 1, бит НЕ запрограммирован; пусто = 0, бит запрограммирован. Перед изменением обязательно прочитайте текущее состояние." />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <DockPanel Margin="0,0,0,8">
+                                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                                    <Button Content="1  Прочитать с устройства" Style="{StaticResource PrimaryButton}" Click="ReadFuses_Click" Margin="0,0,6,0" />
+                                    <Button Content="Отменить изменения" Click="ResetFuses_Click" Margin="0,0,6,0" />
+                                    <Button Content="Значения по умолчанию" Click="DefaultFuses_Click" />
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="Проверить без записи" Click="VerifyFuses_Click" Margin="0,0,6,0" />
+                                    <Button x:Name="WriteFusesButton" Content="2  Просмотреть и записать…" Style="{StaticResource DangerButton}" Click="WriteFuses_Click" IsEnabled="False" />
+                                </StackPanel>
+                            </DockPanel>
+
+                            <ItemsControl x:Name="FuseItems" ItemsSource="{Binding FuseStates}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Card}" Width="232" Margin="0,0,8,8">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,7">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding MemoryName}" Style="{StaticResource MutedText}" FontSize="11" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding HexValue}" Foreground="{StaticResource AccentBrush}" FontSize="16" FontFamily="Consolas" />
+                                                        <TextBlock Text="{Binding BinaryValue}" Style="{StaticResource MutedText}" FontSize="10" FontFamily="Cascadia Mono, Consolas" HorizontalAlignment="Right" />
+                                                    </StackPanel>
+                                                </Grid>
+                                                <ItemsControl ItemsSource="{Binding Bits}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Margin="0,1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="28" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding BitLabel}" Style="{StaticResource MutedText}" FontSize="11" VerticalAlignment="Center" />
+                                                                <CheckBox Grid.Column="1" Content="{Binding Name}" IsChecked="{Binding IsRawOne, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                          IsEnabled="{Binding IsEditable}" ToolTip="{Binding StateHint}" />
+                                                                <TextBlock Grid.Column="2" Text="{Binding RawValueText}" Style="{StaticResource MutedText}" FontSize="10" FontFamily="Consolas" VerticalAlignment="Center" Margin="5,0,0,0" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Border Margin="0,7,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,5,0,0">
+                                                    <TextBlock Style="{StaticResource MutedText}" FontSize="11">
+                                                        <Run Text="С устройства: " /><Run Text="{Binding DeviceHexValue, Mode=OneWay}" />
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Автоматизация">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,7,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="285" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Сохранённые профили" Style="{StaticResource SectionTitle}" />
+                                    <TextBlock Text="Выберите профиль, чтобы восстановить все параметры." Style="{StaticResource MutedText}" TextWrapping="Wrap" FontSize="12" Margin="0,3,0,7" />
+                                    <ComboBox x:Name="ProfileCombo" SelectionChanged="ProfileCombo_SelectionChanged" />
+                                    <Button Content="Запрограммировать по профилю" Style="{StaticResource PrimaryButton}" Click="ProgramProfile_Click" Margin="0,8,0,5" />
+                                    <Button Content="Удалить профиль" Style="{StaticResource DangerButton}" Click="DeleteProfile_Click" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Новый или изменённый профиль" Style="{StaticResource SectionTitle}" />
+                                    <Grid Grid.Row="1" Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220" />
+                                            <ColumnDefinition Width="14" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Название" Style="{StaticResource MutedText}" FontSize="11" Margin="1,0,0,2" />
+                                            <TextBox x:Name="ProfileNameBox" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Описание" Style="{StaticResource MutedText}" FontSize="11" Margin="1,0,0,2" />
+                                            <TextBox x:Name="ProfileDescriptionBox" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel Grid.Row="2" Margin="0,9,0,0">
+                                        <TextBlock Text="Что записывать" FontWeight="SemiBold" Margin="0,0,0,5" />
+                                        <CheckBox x:Name="ProfileFlashCheck" Content="Flash (с chip erase и автоматической проверкой)" IsChecked="True" Margin="0,0,0,4" />
+                                        <CheckBox x:Name="ProfileEepromCheck" Content="EEPROM (с автоматической проверкой)" Margin="0,0,0,4" />
+                                        <CheckBox x:Name="ProfileFusesCheck" Content="Fuse и lock — только после отдельного чтения и подтверждения" Foreground="{StaticResource DangerBrush}" />
+                                        <TextBlock Text="Fuse никогда не включаются автоматически. Если пункт выбран, профиль сохранит текущие raw-значения, но при запуске всё равно потребует чтение и ручное подтверждение." Style="{StaticResource MutedText}" TextWrapping="Wrap" FontSize="11" Margin="18,4,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Row="3" Content="Сохранить профиль" Style="{StaticResource PrimaryButton}" Click="SaveProfile_Click" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="О программе">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,7,0,4">
+                        <Border Style="{StaticResource Card}" MaxWidth="820" HorizontalAlignment="Left">
+                            <StackPanel>
+                                <TextBlock Text="AVRDUDE PRO" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="Современная оболочка для AVRDUDE 6.1" Foreground="{StaticResource AccentBrush}" Margin="0,2,0,9" />
+                                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedText}"
+                                           Text="Приложение воспроизводит операции AVRDUDE_PROG 3.3: Flash, EEPROM, калибровочная ячейка, fuse/lock и профили. Выбранные микроконтроллер, программатор, порт и пути запоминаются автоматически." />
+                                <TextBlock Text="Поддерживаемые входные форматы" Style="{StaticResource SectionTitle}" Margin="0,12,0,5" />
+                                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedText}"
+                                           Text="Intel HEX (.hex, .ihex, .ihx, .a90, .eep), Motorola S-Record (.srec, .s19, .s28, .s37, .mot), AVR ELF (.elf, .axf), raw binary (.bin, .raw, .rom) и текстовые списки байтов. Формат проверяется по содержимому, а не только по расширению." />
+                                <TextBlock Text="Принципы работы с fuse" Style="{StaticResource SectionTitle}" Margin="0,12,0,5" />
+                                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedText}"
+                                           Text="Обычные операции не записывают fuse. Старый safemode AVRDUDE отключён, чтобы исключить его скрытое автоматическое восстановление; вместо него приложение явно читает и сравнивает значения. Любая запись fuse проходит через предварительное повторное чтение, просмотр изменений, подтверждение и контрольное чтение." />
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+
+            <GridSplitter Grid.Row="1" Height="8" HorizontalAlignment="Stretch" Background="Transparent" ResizeDirection="Rows" />
+
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="8,6">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Margin="0,0,0,4" LastChildFill="False">
+                        <TextBlock Text="Журнал AVRDUDE" FontWeight="SemiBold" />
+                        <Button DockPanel.Dock="Right" Content="Очистить" Click="ClearLog_Click" Padding="9,3" MinHeight="25" FontSize="11" />
+                    </DockPanel>
+                    <TextBox x:Name="LogBox" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas"
+                             FontSize="11" Padding="5" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="3" />
+                </Grid.RowDefinitions>
+                <DockPanel Margin="12,5">
+                    <TextBlock DockPanel.Dock="Right" Text="Fuse write: только вручную" Foreground="{StaticResource AccentBrush}" FontSize="12" Margin="16,0,0,0" />
+                    <TextBlock x:Name="StatusText" Text="Готово" Style="{StaticResource MutedText}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                </DockPanel>
+                <ProgressBar x:Name="BusyProgress" Grid.Row="1" IsIndeterminate="True" Visibility="Collapsed" />
+            </Grid>
+        </Border>
     </Grid>
 </Window>

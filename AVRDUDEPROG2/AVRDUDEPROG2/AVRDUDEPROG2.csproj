@@ -6,6 +6,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>AVRDUDEPROG2</AssemblyName>
+    <Product>AVRDUDE PRO</Product>
+    <Description>Безопасная современная оболочка для AVRDUDE</Description>
+    <Version>1.0.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\references\avrdudeprog33\avrdude.exe" Link="Tools\avrdude.exe" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\references\avrdudeprog33\avrdude.conf" Link="Tools\avrdude.conf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\references\avrdudeprog33\atmel.ini" Link="Data\atmel.ini" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\references\avrdudeprog33\programm.ini" Link="Data\programm.ini" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\references\avrdudeprog33\Drivers_USBasp\**\*" Link="Drivers_USBasp\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\references\avrdude-main\COPYING" Link="Licenses\AVRDUDE-COPYING.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>
