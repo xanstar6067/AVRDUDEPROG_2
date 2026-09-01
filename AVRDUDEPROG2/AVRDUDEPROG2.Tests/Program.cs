@@ -68,6 +68,32 @@ Assert(arguments.Count(argument => argument.Contains("fuse", StringComparison.Or
     "Обычная Flash-команда неожиданно содержит fuse-операцию");
 Assert(arguments.Contains("flash:w:C:\\firmware.hex:i"), "Путь Windows повреждён при формировании аргументов");
 
+var streamParser = new AvrdudeStreamParser();
+var progressLines = new List<string>();
+progressLines.AddRange(streamParser.Append("\rWriting | ####", out var ttyPending1));
+Assert(ttyPending1 == "Writing | ####", "Незавершённая TTY-строка прогресса должна отдаваться как pending");
+progressLines.AddRange(streamParser.Append(" | 10% 0.10s\rWriting | ######## | 20% 0.20s\r\n", out var ttyPending2));
+Assert(ttyPending2 is null, "После \\r/\\n строка должна считаться завершённой, а не pending");
+Assert(progressLines.SequenceEqual([
+    "Writing | #### | 10% 0.10s",
+    "Writing | ######## | 20% 0.20s"
+]), "Прогресс AVRDUDE с возвратами каретки разбирается неверно");
+
+// AVRDUDE переключается на update_progress_no_tty(), когда stderr не консоль (всегда так при
+// перенаправлении в pipe для .NET Process): бар растёт символами '#' без \r/\n между ними, и
+// завершается только в самом конце операции. pending должен отражать этот рост, иначе прогресс
+// не появится в интерфейсе до самого конца операции.
+var noTtyParser = new AvrdudeStreamParser();
+var noTtyLines = new List<string>();
+noTtyLines.AddRange(noTtyParser.Append("Writing | ", out var noTtyPending1));
+Assert(noTtyPending1 == "Writing | ", "Заголовок no-tty прогресса должен быть виден сразу");
+noTtyLines.AddRange(noTtyParser.Append("##", out var noTtyPending2));
+Assert(noTtyPending2 == "Writing | ##", "Растущий no-tty прогресс (без \\r/\\n) должен отражаться в pending");
+noTtyLines.AddRange(noTtyParser.Append("### | 100% 0.42s\n", out var noTtyPendingFinal));
+Assert(noTtyPendingFinal is null, "После завершающего \\n строка должна считаться завершённой");
+Assert(noTtyLines.SequenceEqual(["Writing | ##### | 100% 0.42s"]),
+    "Финальная no-tty строка прогресса разобрана неверно");
+
 Console.WriteLine($"OK: {devices.Count} устройств, {programmers.Count} программаторов, форматы и fuse-защита проверены.");
 var renderIndex = Array.IndexOf(args, "--render");
 if (renderIndex >= 0 && renderIndex + 1 < args.Length)

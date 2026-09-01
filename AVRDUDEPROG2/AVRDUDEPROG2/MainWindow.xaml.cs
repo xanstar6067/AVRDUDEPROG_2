@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     private IReadOnlyList<ProgrammerDefinition> _programmers = [];
     private bool _loading = true;
     private bool _isBusy;
+    private int? _activeProgressLogStart;
+    private string? _activeProgressKind;
 
     public ObservableCollection<FuseByteState> FuseStates { get; } = [];
 
@@ -30,6 +32,7 @@ public partial class MainWindow : Window
         DataContext = this;
         _settings = _settingsService.Load();
         _avrdude.OutputReceived += Avrdude_OutputReceived;
+        _avrdude.ProgressReceived += Avrdude_ProgressReceived;
 
         try
         {
@@ -656,12 +659,47 @@ public partial class MainWindow : Window
 
     private void Avrdude_OutputReceived(object? sender, string line) => Dispatcher.BeginInvoke(() => AppendLog(line));
 
+    private void Avrdude_ProgressReceived(object? sender, string line) => Dispatcher.BeginInvoke(() => AppendProgress(line));
+
     private void AppendLog(string line)
     {
-        if (LogBox.Text.Length > 250_000)
-            LogBox.Text = LogBox.Text[^150_000..];
+        TrimLogIfNeeded();
+        _activeProgressLogStart = null;
+        _activeProgressKind = null;
         LogBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {line}{Environment.NewLine}");
         LogBox.ScrollToEnd();
+    }
+
+    private void AppendProgress(string line)
+    {
+        TrimLogIfNeeded();
+        var kind = line.StartsWith("Reading", StringComparison.OrdinalIgnoreCase) ? "Reading" : "Writing";
+        var entry = $"[{DateTime.Now:HH:mm:ss}] {line}{Environment.NewLine}";
+
+        if (_activeProgressLogStart is int start &&
+            _activeProgressKind == kind &&
+            start >= 0 && start <= LogBox.Text.Length)
+        {
+            LogBox.Text = LogBox.Text[..start] + entry;
+        }
+        else
+        {
+            _activeProgressLogStart = LogBox.Text.Length;
+            _activeProgressKind = kind;
+            LogBox.AppendText(entry);
+        }
+
+        LogBox.CaretIndex = LogBox.Text.Length;
+        LogBox.ScrollToEnd();
+    }
+
+    private void TrimLogIfNeeded()
+    {
+        if (LogBox.Text.Length <= 250_000)
+            return;
+        LogBox.Text = LogBox.Text[^150_000..];
+        _activeProgressLogStart = null;
+        _activeProgressKind = null;
     }
 
     private void ShowError(Exception exception)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using AVRDUDEPROG2.Models;
 
 namespace AVRDUDEPROG2.Services;
@@ -12,6 +13,16 @@ public sealed class AvrdudeService
     public string ConfigPath { get; } = Path.Combine(AppContext.BaseDirectory, "Tools", "avrdude.conf");
     public bool IsRunning { get; private set; }
     public event EventHandler<string>? OutputReceived;
+    public event EventHandler<string>? ProgressReceived;
+
+    // AVRDUDE detects that stderr isn't a TTY (always true once redirected into a pipe) and
+    // switches to update_progress_no_tty(): it prints "Reading | " once, then appends '#'/'-'
+    // characters one at a time with NO \r or \n between them, only closing the line with
+    // " | 100% ...\n" at the very end. So a line-boundary match alone is not enough; we also
+    // match the still-growing, unterminated line so the bar can be shown as it fills in.
+    private static readonly Regex ProgressPattern = new(
+        @"^\s*(?:Reading|Writing)\s*\|",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     public IReadOnlyList<string> BuildArguments(
         DeviceDefinition device,
@@ -70,26 +81,49 @@ public sealed class AvrdudeService
 
             using var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
             var output = new StringBuilder();
-            process.OutputDataReceived += (_, args) => AppendLine(args.Data);
-            process.ErrorDataReceived += (_, args) => AppendLine(args.Data);
 
             if (!process.Start())
                 throw new InvalidOperationException("Не удалось запустить AVRDUDE.");
 
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
+            // AVRDUDE redraws its Reading/Writing bar with bare carriage returns.
+            // Reading the streams ourselves preserves those intermediate updates;
+            // Process.*DataReceived can defer or merge them into a single line.
+            var standardOutputTask = PumpOutputAsync(process.StandardOutput, cancellationToken);
+            var standardErrorTask = PumpOutputAsync(process.StandardError, cancellationToken);
             await process.WaitForExitAsync(cancellationToken);
-            process.WaitForExit();
+            await Task.WhenAll(standardOutputTask, standardErrorTask);
 
             return new AvrdudeRunResult(process.ExitCode, output.ToString(), arguments);
 
-            void AppendLine(string? line)
+            async Task PumpOutputAsync(StreamReader reader, CancellationToken token)
             {
-                if (line is null)
-                    return;
+                var parser = new AvrdudeStreamParser();
+                var buffer = new char[1024];
+                while (true)
+                {
+                    var count = await reader.ReadAsync(buffer.AsMemory(), token);
+                    if (count == 0)
+                        break;
+                    string? pending;
+                    foreach (var line in parser.Append(buffer.AsSpan(0, count), out pending))
+                        AppendLine(line);
+                    if (pending is not null && ProgressPattern.IsMatch(pending))
+                        ProgressReceived?.Invoke(this, pending.Trim());
+                }
+
+                var finalLine = parser.Complete();
+                if (finalLine is not null)
+                    AppendLine(finalLine);
+            }
+
+            void AppendLine(string line)
+            {
                 lock (output)
                     output.AppendLine(line);
-                OutputReceived?.Invoke(this, line);
+                if (ProgressPattern.IsMatch(line))
+                    ProgressReceived?.Invoke(this, line.Trim());
+                else
+                    OutputReceived?.Invoke(this, line);
             }
         }
         finally
@@ -188,4 +222,60 @@ public sealed class AvrdudeService
 
     private static string QuoteForDisplay(string value) =>
         value.Any(char.IsWhiteSpace) ? $"\"{value}\"" : value;
+}
+
+internal sealed class AvrdudeStreamParser
+{
+    private readonly StringBuilder _line = new();
+    private bool _previousWasCarriageReturn;
+
+    public IReadOnlyList<string> Append(ReadOnlySpan<char> text, out string? pending)
+    {
+        var lines = new List<string>();
+        foreach (var character in text)
+        {
+            switch (character)
+            {
+                case '\r':
+                    Flush(lines);
+                    _previousWasCarriageReturn = true;
+                    break;
+                case '\n':
+                    if (!_previousWasCarriageReturn)
+                        Flush(lines);
+                    _previousWasCarriageReturn = false;
+                    break;
+                case '\b':
+                    if (_line.Length > 0)
+                        _line.Length--;
+                    _previousWasCarriageReturn = false;
+                    break;
+                case '\0':
+                    break;
+                default:
+                    _line.Append(character);
+                    _previousWasCarriageReturn = false;
+                    break;
+            }
+        }
+        pending = _line.Length > 0 ? _line.ToString() : null;
+        return lines;
+    }
+
+    public string? Complete()
+    {
+        if (_line.Length == 0)
+            return null;
+        var line = _line.ToString();
+        _line.Clear();
+        return line;
+    }
+
+    private void Flush(List<string> lines)
+    {
+        if (_line.Length == 0)
+            return;
+        lines.Add(_line.ToString());
+        _line.Clear();
+    }
 }

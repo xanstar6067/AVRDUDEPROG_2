@@ -50,7 +50,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="8" />
-                <RowDefinition Height="105" MinHeight="70" />
+                <RowDefinition Height="315" MinHeight="70" />
             </Grid.RowDefinitions>
 
             <TabControl x:Name="ContentTabs" Grid.Row="0">
